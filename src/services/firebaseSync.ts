@@ -48,17 +48,17 @@ function getFirebaseApp(): FirebaseApp {
 /**
  * RTDB keys must be unique. Primary key: session end (ms) + disambiguated client id (safe chars only).
  */
-function buildSessionEntryKey(sessionEndedAtIso: string, clientSessionId: string): string {
+function buildSessionEntryKey(sessionEndedAtIso: string, caseId: string): string {
   const t = Date.parse(sessionEndedAtIso)
   const ms = Number.isFinite(t) ? t : Date.now()
-  const idPart = clientSessionId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) || 'id'
+  const idPart = caseId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) || 'id'
   return `${ms}_${idPart}`
 }
 
-function buildConsentEntryKey(consentSubmittedAtIso: string, clientSessionId: string): string {
+function buildConsentEntryKey(consentSubmittedAtIso: string, caseId: string): string {
   const t = Date.parse(consentSubmittedAtIso)
   const ms = Number.isFinite(t) ? t : Date.now()
-  const idPart = clientSessionId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) || 'id'
+  const idPart = caseId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20) || 'id'
   return `consent_${ms}_${idPart}`
 }
 
@@ -98,7 +98,7 @@ export async function pushConsentToFirebase(consent: ConsentRtdbSnapshot): Promi
     return notConfiguredResult()
   }
 
-  const key = buildConsentEntryKey(consent.consentSubmittedAt, consent.clientSessionId)
+  const key = buildConsentEntryKey(consent.consentSubmittedAt, consent.caseId)
   const body = {
     ...consent,
     submittedAt: serverTimestamp(),
@@ -137,7 +137,7 @@ export async function pushMindPulseSessionToFirebase(
     )
   }
 
-  const entryKey = buildSessionEntryKey(input.sessionEndedAt, input.clientSessionId)
+  const entryKey = buildSessionEntryKey(input.sessionEndedAt, input.caseId)
 
   try {
     const db = getDatabase(getFirebaseApp())

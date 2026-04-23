@@ -6,10 +6,11 @@ import './SessionReport.css'
 
 interface Props {
   participant: Participant
+  caseId: string
   emotionSamples: EmotionFrameSample[]
 }
 
-export default function SessionReport({ participant, emotionSamples }: Props) {
+export default function SessionReport({ participant, caseId, emotionSamples }: Props) {
   const report = useMemo(() => buildBehavioralReport(emotionSamples), [emotionSamples])
   const hasData = report.frameCount > 0
 
@@ -56,6 +57,14 @@ export default function SessionReport({ participant, emotionSamples }: Props) {
               <dt>Gender</dt>
               <dd>{genderLabel}</dd>
             </div>
+            {caseId && (
+              <div>
+                <dt>Case ID</dt>
+                <dd>
+                  <code className="sr-case-id">{caseId}</code>
+                </dd>
+              </div>
+            )}
           </dl>
         </section>
 

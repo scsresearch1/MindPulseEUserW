@@ -111,6 +111,8 @@ interface SessionEndPayload {
 }
 
 interface Props {
+  /** Assigned when consent is accepted; shown in the UI and stored with session data. */
+  caseId: string
   /** Called when the user taps “Continue” on the end screen; always receives the 60s capture payload. */
   onSessionEnd: (data: SessionEndPayload) => void
 }
@@ -122,7 +124,7 @@ const EMPTY_SESSION_END: SessionEndPayload = {
   meta: { hadCamera: false, modelsLoaded: false, usedFaceInference: false },
 }
 
-export default function StimulusEngine({ onSessionEnd }: Props) {
+export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
   const endSessionDataRef = useRef<SessionEndPayload | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -862,6 +864,12 @@ export default function StimulusEngine({ onSessionEnd }: Props) {
 
   return (
     <div ref={rootRef} className="se-root">
+      {caseId && (
+        <div className="se-case-id-bar" role="status" aria-label="Case ID">
+          <span className="se-case-id-label">Case ID</span>
+          <code className="se-case-id-value">{caseId}</code>
+        </div>
+      )}
       <video
         ref={videoRef}
         className="se-hidden-video"

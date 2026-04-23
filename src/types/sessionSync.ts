@@ -1,5 +1,10 @@
 import type { EmotionFrameSample, EmotionSessionMeta } from '../emotion/emotionTypes'
-import type { ConsentRtdbSnapshot, EmotionTimeSeriesPoint, Participant } from '../types'
+import type {
+  ConsentRtdbSnapshot,
+  EmotionTimeSeriesPoint,
+  Gender,
+  Participant,
+} from '../types'
 
 /** Client input after the 60s run (browser-only inference). */
 export interface MindPulseSessionInput {
@@ -8,7 +13,7 @@ export interface MindPulseSessionInput {
   emotionSamples: EmotionFrameSample[]
   sessionMeta: EmotionSessionMeta
   sessionEndedAt: string
-  clientSessionId: string
+  caseId: string
   schemaVersion: 1
 }
 
@@ -20,7 +25,7 @@ export interface MindPulseRtdbSessionRecord {
   schemaVersion: 1
   submittedAt?: number
   sessionEndedAt: string
-  clientSessionId: string
+  caseId: string
   participantName: string
   age: number
   gender: Gender
@@ -50,13 +55,13 @@ export function buildRtdbSessionRecord(input: MindPulseSessionInput): MindPulseR
     emotionSamples,
     sessionMeta,
     sessionEndedAt,
-    clientSessionId,
+    caseId,
     schemaVersion,
   } = input
   return {
     schemaVersion,
     sessionEndedAt,
-    clientSessionId,
+    caseId,
     participantName: participant.name,
     age: participant.age,
     gender: participant.gender,

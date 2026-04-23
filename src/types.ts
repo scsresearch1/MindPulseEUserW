@@ -18,12 +18,12 @@ export interface ConsentResponseLine {
 
 /**
  * Snapshot of the consent step for Firebase (pushed as its own node and embedded in the session row).
- * `clientSessionId` matches the run that follows on Agree.
+ * `caseId` is a six-digit string (e.g. "042891"), created at consent and stored with this run.
  */
 export interface ConsentRtdbSnapshot {
   schemaVersion: 1
   consentSubmittedAt: string
-  clientSessionId: string
+  caseId: string
   participantName: string
   age: number
   gender: Gender

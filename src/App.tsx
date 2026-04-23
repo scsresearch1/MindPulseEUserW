@@ -5,11 +5,11 @@ import StimulusEngine from './components/StimulusEngine'
 import SessionReport from './components/SessionReport'
 import { describeFirebaseSyncBlocker } from './config/firebaseEnv'
 import type { EmotionFrameSample } from './emotion/emotionTypes'
+import { createCaseId } from './lib/createCaseId'
 import type { ConsentRtdbSnapshot, FlowStep, Participant } from './types'
 import './App.css'
 
 export default function App() {
-  const clientSessionIdRef = useRef(crypto.randomUUID())
   const participantRef = useRef<Participant | null>(null)
   const consentRef = useRef<ConsentRtdbSnapshot | null>(null)
   const [step, setStep] = useState<FlowStep>('details')
@@ -64,12 +64,11 @@ export default function App() {
             onSubmit={async ({ responses, submittedAt }) => {
               const p = participantRef.current
               if (!p) return
-              clientSessionIdRef.current = crypto.randomUUID()
-              const id = clientSessionIdRef.current
+              const caseId = createCaseId()
               const consent: ConsentRtdbSnapshot = {
                 schemaVersion: 1,
                 consentSubmittedAt: submittedAt,
-                clientSessionId: id,
+                caseId,
                 participantName: p.name,
                 age: p.age,
                 gender: p.gender,
@@ -86,8 +85,9 @@ export default function App() {
             }}
           />
         )}
-        {step === 'stimulus' && (
+        {step === 'stimulus' && consentRecord && (
           <StimulusEngine
+            caseId={consentRecord.caseId}
             onSessionEnd={({ samples, meta }) => {
               setEmotionSamples(samples)
               setStep('complete')
@@ -118,7 +118,7 @@ export default function App() {
                   emotionSamples: samples,
                   sessionMeta: meta,
                   sessionEndedAt: new Date().toISOString(),
-                  clientSessionId: clientSessionIdRef.current,
+                  caseId: c.caseId,
                   schemaVersion: 1,
                 })
                 if (r.ok) {
@@ -133,9 +133,13 @@ export default function App() {
             }}
           />
         )}
-        {step === 'complete' && participant && (
+        {step === 'complete' && participant && consentRecord && (
           <div className="survey-complete-flow">
-            <SessionReport participant={participant} emotionSamples={emotionSamples} />
+            <SessionReport
+              participant={participant}
+              caseId={consentRecord.caseId}
+              emotionSamples={emotionSamples}
+            />
             <div className="survey-panel survey-complete survey-complete-footer">
               <p className="survey-complete-eyebrow">Thank you</p>
               <p className="survey-lead">
