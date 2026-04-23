@@ -124,6 +124,16 @@ const EMPTY_SESSION_END: SessionEndPayload = {
   meta: { hadCamera: false, modelsLoaded: false, usedFaceInference: false },
 }
 
+function CaseIdCallout({ id }: { id: string }) {
+  if (!id) return null
+  return (
+    <p className="se-case-id-callout" role="status" aria-label={`Case ID ${id}`}>
+      <span className="se-case-id-callout-label">Case ID</span>
+      <span className="se-case-id-callout-digits">{id}</span>
+    </p>
+  )
+}
+
 export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
   const endSessionDataRef = useRef<SessionEndPayload | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
@@ -882,6 +892,7 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
       {prep === 'loading' && (
         <div className="se-prep">
           <div className="se-prep-card">
+            <CaseIdCallout id={caseId} />
             <div className="se-prep-spinner" aria-hidden />
             <p className="se-prep-title">Preparing session</p>
             <p className="se-prep-text">
@@ -893,6 +904,7 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
       {prep === 'need_start' && (
         <div className="se-prep">
           <div className="se-prep-card">
+            <CaseIdCallout id={caseId} />
             <p className="se-prep-title">Camera unavailable</p>
             <p className="se-prep-text">
               {prepError ??
@@ -914,6 +926,7 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
         >
           <div className="se-prep-card se-cursor-brief-card">
             <p className="se-cursor-brief-eyebrow">Upcoming task</p>
+            <CaseIdCallout id={caseId} />
             <h2 className="se-cursor-brief-title" id="se-cursor-brief-title">
               Visuomotor guidance
             </h2>

@@ -11,7 +11,7 @@
   top: 0;
   left: 0;
   right: 0;
-  z-index: 120;
+  z-index: 200;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,6 +40,45 @@
   word-break: break-all;
   text-align: center;
   max-width: min(100%, 42rem);
+}
+
+/* In-dialog case ID: impossible to miss on prep / visuomotor popups. */
+.se-case-id-callout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 1.1rem;
+  padding: 0.65rem 0.9rem;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(0, 229, 196, 0.08);
+  border: 1px solid rgba(0, 229, 196, 0.35);
+  box-shadow: 0 0 0 1px rgba(0, 229, 196, 0.06) inset;
+}
+
+.se-cursor-brief .se-case-id-callout {
+  text-align: left;
+  justify-content: flex-start;
+  margin-bottom: 1.15rem;
+}
+
+.se-case-id-callout-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 229, 196, 0.85);
+}
+
+.se-case-id-callout-digits {
+  font-family: ui-monospace, 'Cascadia Code', 'Consolas', monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #e8fff8;
+  text-shadow: 0 0 24px rgba(0, 229, 196, 0.35);
 }
 
 /* Required for inference; must not be visible (consent covers capture). */

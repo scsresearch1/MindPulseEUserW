@@ -34,9 +34,10 @@ export interface MindPulseRtdbSessionRecord {
   emotionTimeSeries: EmotionTimeSeriesPoint[]
 }
 
-function sampleToTimeSeriesPoint(s: EmotionFrameSample): EmotionTimeSeriesPoint {
+function sampleToTimeSeriesPoint(s: EmotionFrameSample, caseId: string): EmotionTimeSeriesPoint {
   const p = s.facialEmotionProbabilities
   return {
+    caseId,
     sessionTimeMs: s.sessionTimeMs,
     neutral: p.neutral,
     happy: p.happy,
@@ -67,6 +68,6 @@ export function buildRtdbSessionRecord(input: MindPulseSessionInput): MindPulseR
     gender: participant.gender,
     consent,
     sessionMeta,
-    emotionTimeSeries: emotionSamples.map(sampleToTimeSeriesPoint),
+    emotionTimeSeries: emotionSamples.map((s) => sampleToTimeSeriesPoint(s, caseId)),
   }
 }

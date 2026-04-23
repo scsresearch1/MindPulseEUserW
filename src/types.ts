@@ -30,8 +30,9 @@ export interface ConsentRtdbSnapshot {
   responses: ConsentResponseLine[]
 }
 
-/** One row in the 60s emotion time series (for RTDB and charts). */
+/** One row in the 60s emotion time series (for RTDB and charts). Same `caseId` as the parent session row. */
 export interface EmotionTimeSeriesPoint {
+  caseId: string
   sessionTimeMs: number
   neutral: number
   happy: number

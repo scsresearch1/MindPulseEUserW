@@ -71,9 +71,10 @@ const schemaInfo = {
     consent: 'Full ConsentRtdbSnapshot: responses[] with { question, answer yes|no }.',
     sessionMeta: 'Object: hadCamera, modelsLoaded, usedFaceInference (booleans).',
     emotionTimeSeries:
-      'Array of points for visualization: sessionTimeMs + seven expression probabilities 0..1, aligned to the stimulus timeline.',
+      'Array of points: each item includes caseId (same as parent session) + sessionTimeMs + seven expression probabilities 0..1.',
   },
   emotionTimeSeriesItemShape: {
+    caseId: 'string — same six-digit case id as the session row and consent snapshot',
     sessionTimeMs: 'number — ms from start of 60s activity',
     neutral: 'number',
     happy: 'number',
@@ -111,6 +112,7 @@ const exampleSession = {
   },
   emotionTimeSeries: [
     {
+      caseId: '482913',
       sessionTimeMs: 0,
       neutral: 0.45,
       happy: 0.2,
@@ -121,6 +123,7 @@ const exampleSession = {
       disgust: 0.08,
     },
     {
+      caseId: '482913',
       sessionTimeMs: 250,
       neutral: 0.4,
       happy: 0.25,
