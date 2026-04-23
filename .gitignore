@@ -1,0 +1,7 @@
+node_modules
+dist
+*.local
+.DS_Store
+# Local copies of service account keys (use FIREBASE_SERVICE_ACCOUNT or CLI arg to rtdb:init-schema)
+scripts/.local-service-account.json
+*firebase-adminsdk*.json

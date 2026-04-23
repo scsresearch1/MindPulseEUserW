@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "mindpulse": {
+      "v1": {
+        "sessions": {
+          ".read": true,
+          ".write": true
+        },
+        "consent": {
+          ".read": true,
+          ".write": true
+        }
+      }
+    }
+  }
+}

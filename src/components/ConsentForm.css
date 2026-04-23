@@ -1,0 +1,233 @@
+.cf-wrap {
+  position: relative;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.cf-glow {
+  position: absolute;
+  inset: -25% -15% auto;
+  height: 280px;
+  background: radial-gradient(
+    ellipse 65% 55% at 70% 0%,
+    rgba(157, 78, 221, 0.14),
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.cf-card {
+  position: relative;
+  padding: 2.25rem 2rem 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    155deg,
+    rgba(22, 30, 56, 0.96) 0%,
+    rgba(16, 22, 42, 0.9) 50%,
+    rgba(18, 26, 48, 0.92) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(157, 78, 221, 0.05) inset,
+    0 32px 80px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(20px);
+}
+
+.cf-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c4a8e8;
+  margin-bottom: 0.75rem;
+}
+
+.cf-title {
+  font-size: 1.625rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(120deg, #f0f4fa 0%, #b8cfe0 50%, #d4c4f0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.cf-intro {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cf-intro strong {
+  color: var(--pulse-teal);
+  font-weight: 600;
+}
+
+.cf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cf-list {
+  list-style: none;
+  counter-reset: cfq;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-height: min(52vh, 520px);
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  margin-right: -0.25rem;
+}
+
+.cf-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cf-list::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 196, 0.25);
+  border-radius: 3px;
+}
+
+.cf-item {
+  counter-increment: cfq;
+  padding: 1.1rem 1.15rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(10, 14, 28, 0.4);
+  transition: border-color 0.2s ease;
+}
+
+.cf-item:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cf-q {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--text-primary);
+  margin-bottom: 0.85rem;
+  padding-left: 1.65rem;
+  position: relative;
+}
+
+.cf-q::before {
+  content: counter(cfq);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--pulse-teal);
+  opacity: 0.85;
+  min-width: 1.25rem;
+}
+
+.cf-yesno {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-left: 1.65rem;
+}
+
+.cf-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 12, 24, 0.5);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.cf-option:hover {
+  border-color: rgba(0, 229, 196, 0.3);
+}
+
+.cf-option:has(input:checked) {
+  border-color: rgba(0, 229, 196, 0.55);
+  background: rgba(0, 229, 196, 0.12);
+  color: #e8fff9;
+}
+
+.cf-option input {
+  accent-color: var(--pulse-teal);
+  width: 1rem;
+  height: 1rem;
+}
+
+.cf-error {
+  font-size: 0.875rem;
+  color: #ff8fa3;
+  line-height: 1.5;
+}
+
+.cf-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cf-back {
+  padding: 0.9rem 1.35rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.cf-back:hover {
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.cf-submit {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.9rem 1.5rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0a0e18;
+  background: linear-gradient(135deg, #9d4edd 0%, #00e5c4 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 28px rgba(157, 78, 221, 0.25);
+  transition:
+    transform 0.15s ease,
+    opacity 0.2s ease;
+}
+
+.cf-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.cf-submit:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  transform: none;
+}

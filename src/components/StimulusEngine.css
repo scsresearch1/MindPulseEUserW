@@ -1,0 +1,322 @@
+.se-root {
+  --se-progress: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #02040a;
+}
+
+/* Required for inference; must not be visible (consent covers capture). */
+.se-hidden-video {
+  position: fixed;
+  width: 416px;
+  height: 416px;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  object-fit: cover;
+}
+
+.se-prep {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(2, 4, 10, 0.94);
+  backdrop-filter: blur(14px);
+  z-index: 20;
+}
+
+.se-prep-card {
+  max-width: 420px;
+  text-align: center;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(160deg, rgba(22, 30, 56, 0.95), rgba(14, 20, 40, 0.92));
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 196, 0.06) inset,
+    0 24px 64px rgba(0, 0, 0, 0.5);
+}
+
+.se-prep-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 1.25rem;
+  border: 3px solid rgba(0, 229, 196, 0.12);
+  border-top-color: rgba(0, 229, 196, 0.9);
+  border-radius: 50%;
+  animation: se-spin 0.75s linear infinite;
+}
+
+@keyframes se-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.se-prep-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.se-prep-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 1.25rem;
+}
+
+.se-prep-btn {
+  padding: 0.9rem 1.5rem;
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0a0e18;
+  background: linear-gradient(135deg, #00e5c4, #4cc9f0);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 28px rgba(0, 229, 196, 0.35);
+  transition:
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+
+.se-prep-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+/* Instruction shown after setup, before the timed segment starts */
+.se-cursor-brief {
+  z-index: 25;
+}
+
+.se-cursor-brief-card {
+  max-width: 32rem;
+  text-align: left;
+}
+
+.se-cursor-brief-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(0, 229, 196, 0.65);
+  margin: 0 0 0.4rem;
+}
+
+.se-cursor-brief-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 1rem;
+  color: var(--text-primary, #f0f4f8);
+}
+
+.se-cursor-brief-body {
+  font-size: 0.9375rem;
+  color: var(--text-secondary, rgba(240, 244, 250, 0.72));
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+}
+
+.se-cursor-brief-body p {
+  margin: 0 0 0.9rem;
+}
+
+.se-cursor-brief-body p:last-of-type {
+  margin-bottom: 0;
+}
+
+.se-cursor-brief-body strong {
+  font-weight: 600;
+  color: rgba(240, 244, 250, 0.88);
+}
+
+.se-cursor-brief-btn {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.se-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.se-canvas-live {
+  cursor: none;
+}
+
+.se-hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  padding: 1rem 1.25rem;
+}
+
+.se-hud-glass {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0.65rem 1rem 0.75rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: linear-gradient(
+    135deg,
+    rgba(12, 18, 36, 0.55) 0%,
+    rgba(8, 12, 28, 0.42) 100%
+  );
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 229, 196, 0.04) inset;
+}
+
+.se-hud-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+}
+
+.se-hud-title {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(240, 244, 250, 0.42);
+}
+
+.se-hud-phase {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  color: rgba(0, 229, 196, 0.92);
+  text-shadow: 0 0 20px rgba(0, 229, 196, 0.25);
+}
+
+.se-hud-track {
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-top: 0.55rem;
+  max-width: 100%;
+}
+
+.se-hud-fill {
+  height: 100%;
+  width: 100%;
+  border-radius: 2px;
+  transform: scaleX(var(--se-progress, 0));
+  transform-origin: left center;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 229, 196, 0.35),
+    rgba(0, 229, 196, 0.95) 55%,
+    rgba(76, 201, 240, 0.85)
+  );
+  box-shadow: 0 0 12px rgba(0, 229, 196, 0.35);
+  will-change: transform;
+}
+
+.se-done {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(2, 4, 10, 0.78);
+  backdrop-filter: blur(20px);
+  animation: se-fade-in 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes se-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.se-done-card {
+  max-width: 400px;
+  width: 100%;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(165deg, rgba(24, 32, 58, 0.98), rgba(14, 20, 40, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(0, 229, 196, 0.1) inset,
+    0 32px 80px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  animation: se-card-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+
+@keyframes se-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.se-done-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.65rem;
+  background: linear-gradient(120deg, #f0f4fa, #7ee8d8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.se-done-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: 1.5rem;
+}
+
+.se-done-btn {
+  width: 100%;
+  padding: 0.95rem 1.25rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0a0e18;
+  background: linear-gradient(135deg, #00e5c4, #4cc9f0);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 28px rgba(0, 229, 196, 0.4);
+  transition:
+    transform 0.15s ease,
+    filter 0.2s ease;
+}
+
+.se-done-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+}

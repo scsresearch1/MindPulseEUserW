@@ -1,0 +1,13 @@
+# MindPulse-Survey (Vite + React) — static build, no env vars in Netlify UI.
+# If the Git repo root is the parent "MindPulse" folder, set Base directory in Netlify to:
+#   EndUserSimulation/MindPulse-Survey
+
+[build]
+  command = "npm ci && npm run build"
+  publish = "dist"
+
+# SPA: all routes fall back to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

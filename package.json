@@ -1,0 +1,30 @@
+{
+  "name": "mindpulse-survey",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "face-weights": "node scripts/fetch-face-weights.mjs",
+    "predev": "node scripts/fetch-face-weights.mjs",
+    "prebuild": "node scripts/fetch-face-weights.mjs",
+    "rtdb:init-schema": "node scripts/initialize-rtdb-schema.mjs",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "firebase-admin": "^13.8.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.1"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^5.1.4",
+    "face-api.js": "^0.22.2",
+    "firebase": "^12.12.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  }
+}
