@@ -29,8 +29,8 @@ export function defaultNeutralProbabilities(): FacialEmotionProbabilities {
 /** Shipped with the emotion sample list so the report can explain capture quality. */
 export interface EmotionSessionMeta {
   hadCamera: boolean
-  /** Face-api model weights were loaded (TinyFaceDetector + landmarks + expressions). */
+  /** Vision model assets were loaded and ready for on-device inference. */
   modelsLoaded: boolean
-  /** At least one face-api inference ran during the session (not neutral-fill only). */
+  /** At least one accepted face inference ran during the session. */
   usedFaceInference: boolean
 }

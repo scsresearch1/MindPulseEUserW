@@ -1,41 +1,26 @@
-import * as faceapi from 'face-api.js'
+import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision'
 
-/** All face-api / TF.js model execution happens in the browser tab; nothing is inferred on a server. */
+/** Browser-only model execution; raw video frames never leave the tab for inference. */
+const VISION_BUNDLE_URL =
+  'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+const MODEL_ASSET_URL =
+  'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task'
 
-/**
- * Public-folder bundle (see scripts/fetch-face-weights.mjs). Same-origin, works offline
- * and avoids blocked third-party CDNs.
- */
-const LOCAL_WEIGHTS = `${import.meta.env.BASE_URL}face-api-weights`
+let loadPromise: Promise<FaceLandmarker> | null = null
 
-/** Fallback if local files are missing (e.g. before first npm run / CI without assets). */
-const REMOTE_FALLBACK =
-  'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights'
-
-let loadPromise: Promise<void> | null = null
-
-export function loadFaceApiModels(): Promise<void> {
+export function loadFaceApiModels(): Promise<FaceLandmarker> {
   if (loadPromise) return loadPromise
   loadPromise = (async () => {
-    const tryLoad = (uri: string) =>
-      (async () => {
-        await faceapi.nets.tinyFaceDetector.loadFromUri(uri)
-        await faceapi.nets.faceLandmark68Net.loadFromUri(uri)
-        await faceapi.nets.faceExpressionNet.loadFromUri(uri)
-      })()
-
-    try {
-      await tryLoad(LOCAL_WEIGHTS)
-    } catch (e) {
-      console.warn('MindPulse Survey: local face models failed, trying GitHub raw fallback', e)
-      try {
-        await tryLoad(REMOTE_FALLBACK)
-      } catch (e2) {
-        throw new Error('Face-API models could not be loaded (local or remote)', {
-          cause: e2,
-        })
-      }
-    }
+    const vision = await FilesetResolver.forVisionTasks(VISION_BUNDLE_URL)
+    return FaceLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: MODEL_ASSET_URL,
+      },
+      outputFaceBlendshapes: true,
+      outputFacialTransformationMatrixes: true,
+      runningMode: 'VIDEO',
+      numFaces: 1,
+    })
   })()
   return loadPromise
 }

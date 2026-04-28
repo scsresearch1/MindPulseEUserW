@@ -1,9 +1,9 @@
 /**
- * Activity phase: visuomotor game + optional in-tab webcam inference (face-api.js). Video frames
+ * Activity phase: visuomotor game + optional in-tab webcam inference (MediaPipe Face Landmarker). Video frames
  * are not uploaded for inference; only derived emotion scores may be sent elsewhere (e.g. Firebase) as JSON after the run.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import * as faceapi from 'face-api.js'
+import type { FaceLandmarker } from '@mediapipe/tasks-vision'
 import {
   buildDrawPoints,
   dist2,
@@ -14,6 +14,14 @@ import {
 } from './ribbonMath'
 import type { EmotionFrameSample, EmotionSessionMeta } from '../emotion/emotionTypes'
 import { defaultNeutralProbabilities } from '../emotion/emotionTypes'
+import {
+  applyEma,
+  applyNeutralBaseline,
+  BASELINE_CALIBRATION_MS,
+  normalizeProbabilities,
+  qualityGate,
+  updateBaseline,
+} from '../emotion/emotionPipeline'
 import { loadFaceApiModels } from '../emotion/loadFaceModels'
 import { mapFaceExpressionsToProbabilities } from '../emotion/mapFaceExpressions'
 import './StimulusEngine.css'
@@ -22,7 +30,8 @@ const TOTAL_SEC = 60
 const RIBBON_BASE = 2.2
 const RIBBON_SPEED_K = 0.085
 const SPLINE_SUBDIV = 10
-const EMOTION_SAMPLE_MS = 250
+const EMOTION_INFERENCE_FPS = 8
+const EMOTION_SAMPLE_MS = Math.round(1000 / EMOTION_INFERENCE_FPS)
 
 function ribbonPalette(
   mode: StimulusMode,
@@ -181,6 +190,9 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
   const sessionT0Ref = useRef(0)
   const detectBusyRef = useRef(false)
   const modeFlashRef = useRef(0)
+  const landmarkerRef = useRef<FaceLandmarker | null>(null)
+  const emaRef = useRef<EmotionFrameSample['facialEmotionProbabilities'] | null>(null)
+  const neutralBaselineRef = useRef<EmotionFrameSample['facialEmotionProbabilities'] | null>(null)
 
   useEffect(() => {
     modelsReadyRef.current = modelsReady
@@ -202,7 +214,7 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
 
     ;(async () => {
       try {
-        await loadFaceApiModels()
+        landmarkerRef.current = await loadFaceApiModels()
         if (!cancelled) setModelsReady(true)
       } catch {
         if (!cancelled) {
@@ -319,6 +331,8 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
     emotionSamplesRef.current = []
     emotionEmittedRef.current = false
     faceApiRanRef.current = false
+    emaRef.current = null
+    neutralBaselineRef.current = null
     endSessionDataRef.current = null
 
     const cr = cursorRef.current
@@ -819,46 +833,56 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
           return
         }
 
-        if (!modelsReadyRef.current) {
-          emotionSamplesRef.current.push({
-            sessionTimeMs: elapsed,
-            facialEmotionProbabilities: defaultNeutralProbabilities(),
-          })
-          return
-        }
+        if (!modelsReadyRef.current) return
 
         if (!v || v.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
-          emotionSamplesRef.current.push({
-            sessionTimeMs: elapsed,
-            facialEmotionProbabilities: defaultNeutralProbabilities(),
-          })
           return
         }
 
         detectBusyRef.current = true
         try {
-          const det = await faceapi
-            .detectSingleFace(
-              v,
-              new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }),
-            )
-            .withFaceLandmarks()
-            .withFaceExpressions()
+          const landmarker = landmarkerRef.current
+          if (!landmarker) return
+          const res = landmarker.detectForVideo(v, performance.now())
+          const landmarks = res.faceLandmarks?.[0]
+          const blendshapes = res.faceBlendshapes?.[0]?.categories
+          const score = res.faceBlendshapes?.[0]?.categories?.[0]?.score ?? 0
+
+          if (!landmarks || !blendshapes) return
+          const xs = landmarks.map((l) => l.x)
+          const ys = landmarks.map((l) => l.y)
+          const minX = Math.min(...xs)
+          const maxX = Math.max(...xs)
+          const minY = Math.min(...ys)
+          const maxY = Math.max(...ys)
+          const faceAreaRatio = Math.max(0, (maxX - minX) * (maxY - minY))
+
+          if (
+            !qualityGate({
+              detectionScore: score,
+              widthPx: v.videoWidth,
+              heightPx: v.videoHeight,
+              faceAreaRatio,
+            })
+          ) {
+            return
+          }
 
           faceApiRanRef.current = true
-          const probs = det
-            ? mapFaceExpressionsToProbabilities(det.expressions)
-            : defaultNeutralProbabilities()
+          const raw = normalizeProbabilities(mapFaceExpressionsToProbabilities(blendshapes))
+          const ema = applyEma(raw, emaRef.current)
+          emaRef.current = ema
+
+          if (elapsed <= BASELINE_CALIBRATION_MS) {
+            neutralBaselineRef.current = updateBaseline(neutralBaselineRef.current, ema)
+          }
+          const calibrated = applyNeutralBaseline(ema, neutralBaselineRef.current)
           emotionSamplesRef.current.push({
             sessionTimeMs: elapsed,
-            facialEmotionProbabilities: probs,
+            facialEmotionProbabilities: calibrated,
           })
         } catch {
-          faceApiRanRef.current = true
-          emotionSamplesRef.current.push({
-            sessionTimeMs: elapsed,
-            facialEmotionProbabilities: defaultNeutralProbabilities(),
-          })
+          // Skip write on failed frame so low-quality or transient failures do not pollute series.
         } finally {
           detectBusyRef.current = false
         }
