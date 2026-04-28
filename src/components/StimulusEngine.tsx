@@ -15,7 +15,7 @@ import {
 import type { EmotionFrameSample, EmotionSessionMeta } from '../emotion/emotionTypes'
 import { defaultNeutralProbabilities } from '../emotion/emotionTypes'
 import {
-  applyEma,
+  applyAdaptiveEma,
   applyNeutralBaseline,
   BASELINE_CALIBRATION_MS,
   normalizeProbabilities,
@@ -23,7 +23,7 @@ import {
   updateBaseline,
 } from '../emotion/emotionPipeline'
 import { loadFaceApiModels } from '../emotion/loadFaceModels'
-import { mapFaceExpressionsToProbabilities } from '../emotion/mapFaceExpressions'
+import { inferEmotionFromBlendshapes } from '../emotion/mapFaceExpressions'
 import './StimulusEngine.css'
 
 const TOTAL_SEC = 60
@@ -32,6 +32,7 @@ const RIBBON_SPEED_K = 0.085
 const SPLINE_SUBDIV = 10
 const EMOTION_INFERENCE_FPS = 8
 const EMOTION_SAMPLE_MS = Math.round(1000 / EMOTION_INFERENCE_FPS)
+const MAX_EMOTION_WRITE_GAP_MS = 1400
 
 function ribbonPalette(
   mode: StimulusMode,
@@ -193,6 +194,7 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
   const landmarkerRef = useRef<FaceLandmarker | null>(null)
   const emaRef = useRef<EmotionFrameSample['facialEmotionProbabilities'] | null>(null)
   const neutralBaselineRef = useRef<EmotionFrameSample['facialEmotionProbabilities'] | null>(null)
+  const lastWrittenMsRef = useRef(-Infinity)
 
   useEffect(() => {
     modelsReadyRef.current = modelsReady
@@ -333,6 +335,7 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
     faceApiRanRef.current = false
     emaRef.current = null
     neutralBaselineRef.current = null
+    lastWrittenMsRef.current = -Infinity
     endSessionDataRef.current = null
 
     const cr = cursorRef.current
@@ -833,9 +836,24 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
           return
         }
 
-        if (!modelsReadyRef.current) return
+        const pushFallbackIfGap = () => {
+          if (elapsed - lastWrittenMsRef.current < MAX_EMOTION_WRITE_GAP_MS) return
+          const base = emaRef.current ?? defaultNeutralProbabilities()
+          const calibrated = applyNeutralBaseline(normalizeProbabilities(base), neutralBaselineRef.current)
+          emotionSamplesRef.current.push({
+            sessionTimeMs: elapsed,
+            facialEmotionProbabilities: calibrated,
+          })
+          lastWrittenMsRef.current = elapsed
+        }
+
+        if (!modelsReadyRef.current) {
+          pushFallbackIfGap()
+          return
+        }
 
         if (!v || v.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+          pushFallbackIfGap()
           return
         }
 
@@ -846,7 +864,9 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
           const res = landmarker.detectForVideo(v, performance.now())
           const landmarks = res.faceLandmarks?.[0]
           const blendshapes = res.faceBlendshapes?.[0]?.categories
-          const score = res.faceBlendshapes?.[0]?.categories?.[0]?.score ?? 0
+          const score = Math.max(
+            ...(blendshapes?.map((c) => c.score ?? 0) ?? [0]),
+          )
 
           if (!landmarks || !blendshapes) return
           const xs = landmarks.map((l) => l.x)
@@ -857,20 +877,23 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
           const maxY = Math.max(...ys)
           const faceAreaRatio = Math.max(0, (maxX - minX) * (maxY - minY))
 
+          faceApiRanRef.current = true
+          const inferred = inferEmotionFromBlendshapes(blendshapes)
           if (
             !qualityGate({
               detectionScore: score,
+              signalConfidence: inferred.confidence,
               widthPx: v.videoWidth,
               heightPx: v.videoHeight,
               faceAreaRatio,
             })
           ) {
+            pushFallbackIfGap()
             return
           }
 
-          faceApiRanRef.current = true
-          const raw = normalizeProbabilities(mapFaceExpressionsToProbabilities(blendshapes))
-          const ema = applyEma(raw, emaRef.current)
+          const raw = normalizeProbabilities(inferred.probabilities)
+          const ema = applyAdaptiveEma(raw, emaRef.current, inferred.confidence)
           emaRef.current = ema
 
           if (elapsed <= BASELINE_CALIBRATION_MS) {
@@ -881,8 +904,9 @@ export default function StimulusEngine({ caseId, onSessionEnd }: Props) {
             sessionTimeMs: elapsed,
             facialEmotionProbabilities: calibrated,
           })
+          lastWrittenMsRef.current = elapsed
         } catch {
-          // Skip write on failed frame so low-quality or transient failures do not pollute series.
+          pushFallbackIfGap()
         } finally {
           detectBusyRef.current = false
         }

@@ -16,15 +16,16 @@ type MutableProbs = Record<EmotionLabel, number>
 
 export type QualityContext = {
   detectionScore: number
+  signalConfidence: number
   widthPx: number
   heightPx: number
   faceAreaRatio: number
 }
 
-export const QUALITY_MIN_SCORE = 0.45
-export const MIN_FACE_AREA_RATIO = 0.02
+export const QUALITY_MIN_SCORE = 0.12
+export const MIN_FACE_AREA_RATIO = 0.008
 export const MAX_FACE_AREA_RATIO = 0.7
-export const EMA_ALPHA = 0.35
+export const QUALITY_MIN_SIGNAL_CONFIDENCE = 0.1
 export const BASELINE_CALIBRATION_MS = 8000
 
 export function normalizeProbabilities(p: FacialEmotionProbabilities): FacialEmotionProbabilities {
@@ -52,19 +53,22 @@ export function qualityGate(q: QualityContext): boolean {
   if (!Number.isFinite(q.widthPx) || !Number.isFinite(q.heightPx) || q.widthPx <= 0 || q.heightPx <= 0) {
     return false
   }
-  if (q.detectionScore < QUALITY_MIN_SCORE) return false
+  if (!Number.isFinite(q.detectionScore) || q.detectionScore < QUALITY_MIN_SCORE) return false
+  if (!Number.isFinite(q.signalConfidence) || q.signalConfidence < QUALITY_MIN_SIGNAL_CONFIDENCE) return false
   if (q.faceAreaRatio < MIN_FACE_AREA_RATIO || q.faceAreaRatio > MAX_FACE_AREA_RATIO) return false
   return true
 }
 
-export function applyEma(
+export function applyAdaptiveEma(
   current: FacialEmotionProbabilities,
   previous: FacialEmotionProbabilities | null,
+  confidence: number,
 ): FacialEmotionProbabilities {
   if (!previous) return normalizeProbabilities(current)
+  const alpha = Math.max(0.2, Math.min(0.58, 0.22 + confidence * 0.36))
   const out = {} as MutableProbs
   for (const key of EMOTION_LABELS) {
-    out[key] = previous[key] * (1 - EMA_ALPHA) + current[key] * EMA_ALPHA
+    out[key] = previous[key] * (1 - alpha) + current[key] * alpha
   }
   return normalizeProbabilities(out)
 }
@@ -89,8 +93,9 @@ export function applyNeutralBaseline(
   if (!baseline) return normalizeProbabilities(probs)
   const out = {} as MutableProbs
   for (const key of EMOTION_LABELS) {
-    const adjusted = key === 'neutral' ? probs[key] - baseline[key] * 0.35 : probs[key] - baseline[key]
-    out[key] = Math.max(0, adjusted)
+    const attenuation = key === 'neutral' ? 0.1 : 0.2
+    const adjusted = Math.max(0, probs[key] - baseline[key] * attenuation)
+    out[key] = adjusted * 0.45 + probs[key] * 0.55
   }
   return normalizeProbabilities(out)
 }
