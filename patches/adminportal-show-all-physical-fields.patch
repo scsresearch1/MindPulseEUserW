@@ -1,0 +1,29 @@
+diff --git a/src/components/AdvancedCaseAnalysisSection.tsx b/src/components/AdvancedCaseAnalysisSection.tsx
+--- a/src/components/AdvancedCaseAnalysisSection.tsx
++++ b/src/components/AdvancedCaseAnalysisSection.tsx
+@@
+ function selectPhysicalKeys(
+   aligned: Array<{ physical: Record<string, number> }>,
+ ) {
+   const keySet = new Set<string>()
+   for (const row of aligned) {
+     for (const [k, v] of Object.entries(row.physical)) {
+       if (typeof v === 'number') keySet.add(k)
+     }
+   }
+   const canonical = [
+     'hrvRmssd',
+     'heartRate',
+     'focusIndex',
+     'spo2',
+     'systolic',
+     'diastolic',
+     'bodyTempC',
+     'autonomicConfidence',
+     'restingHeartRate',
+     'caloriesActive',
+   ]
+   const canonicalOrdered = canonical.filter((k) => keySet.has(k) || aligned.length > 0)
+   const extras = Array.from(keySet).filter((k) => !canonical.includes(k)).sort()
+   return [...canonicalOrdered, ...extras]
+ }
